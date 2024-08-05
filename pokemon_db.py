@@ -1,4 +1,5 @@
 import json
+import os.path
 from pathlib import Path
 
 import requests
@@ -51,18 +52,20 @@ class PokemonDB:
         for poke_name, poke_info in poke_to_add.items():
             # Key = Pokemon Name, Value = Pokemon info dictionary
             self.fav_pokemon[poke_name] = poke_info
+
+    def load_data(self):
+        """Loads favorite pokemon from saved file if it exists, if not, create file."""
+        path = Path("fav_pokemon.json")
+        # Check to see if file exists, and whether it's empty
+        if path.exists() and os.path.getsize(path) != 0:
+            self.fav_pokemon = json.loads(path.read_text())
+        else:
+            path.touch()
+        return self.fav_pokemon
+
+
+    def save_data(self):
         path = Path("fav_pokemon.json")
         # Convert fav_pokemon dictionary to json and save
         path.write_text(json.dumps(self.fav_pokemon))
-
-    def load_favs(self):
-        """Loads favorite pokemon from saved file if it exists, if not, create file."""
-        path = Path("fav_pokemon.json")
-        #
-        if path.exists():
-            self.fav_pokemon = json.loads(path.read_text())
-        else:
-
-            path.touch()
-        return self.fav_pokemon
 
