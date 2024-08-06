@@ -9,6 +9,7 @@ class PokemonDB:
 
     def __init__(self):
         self.fav_pokemon = {}
+        self.users = []
 
 
     def find_pokemon(self, pokemon: str):
@@ -47,12 +48,13 @@ class PokemonDB:
             print(f"{stat.title()}:{value}\t", end="")
         print()
 
-    def add_to_faves(self, poke_to_add: dict):
+    def add_to_faves(self, poke_to_add: dict, user: str):
         """Iterate pokemon and add to fav pokemon dictionary."""
-        for poke_name, poke_info in poke_to_add.items():
-            # Key = Pokemon Name, Value = Pokemon info dictionary
-            self.fav_pokemon[poke_name] = poke_info
-
+        if poke_to_add:
+            for poke_name, poke_info in poke_to_add.items():
+                # Key = Pokemon Name, Value = Pokemon info dictionary
+                self.fav_pokemon[user][poke_name] = poke_info
+            self.save_data()
     def load_data(self):
         """Loads favorite pokemon from saved file if it exists, if not, create file."""
         path = Path("fav_pokemon.json")
@@ -68,4 +70,14 @@ class PokemonDB:
         path = Path("fav_pokemon.json")
         # Convert fav_pokemon dictionary to json and save
         path.write_text(json.dumps(self.fav_pokemon))
+
+    def add_user(self, username: str):
+        self.users.append(username)
+        self.fav_pokemon[username] = {}
+        self.save_data()
+
+    def delete_user(self, to_delete:str):
+        """Delete user specified from pokemon dictionary"""
+        del self.fav_pokemon[to_delete]
+        self.save_data()
 
