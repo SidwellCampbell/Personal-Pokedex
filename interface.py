@@ -20,6 +20,10 @@ _,-'       `.     |    |  /`.   \,-'    |   \  /   |   |    \  |`.
 #     print(f"{index}: {user}")
 
 
+#TODO
+# Add in checks to avoid overwriting users with same name
+# Add in feature to see evolutionary options for pokemon
+
 pokemon_data = PokemonDB()
 pokemon_data.load_data()
 
@@ -39,9 +43,14 @@ def main_menu() -> int:
 def get_user_info(user_input: int) -> str:
     """Add, delete, or select user. Returns user's name or blank string"""
     if user_input == 1:
-        new_user = input("What is the user's name: ").title()
-        pokemon_data.add_user(new_user)
-        print(f"Hey {new_user.title()}!")
+        while True:
+            new_user = input("What is the user's name: ").title()
+            if new_user in pokemon_data.fav_pokemon:
+                print("User with that name exists already. Choose another!")
+            else:
+                pokemon_data.add_user(new_user)
+                print(f"Hey {new_user.title()}!")
+                break
         return new_user
     elif user_input == 2:
         while True:
@@ -76,7 +85,7 @@ def user_menu() -> int:
 
 
 def process_user_input(user_choice: int, selected_user: str) -> bool:
-    """Process user selection and return True is selection successfully processed"""
+    """Process user selection and return True if selection successfully processed"""
     completed = True
     if user_choice == 1:
         save_pending = {}
@@ -96,7 +105,6 @@ def process_user_input(user_choice: int, selected_user: str) -> bool:
             if search_more != "yes":
                 break
         pokemon_data.add_to_faves(save_pending, selected_user)
-        completed = True
         print(f"\nThe following pokemon were added:{', '.join(save_pending.keys())}\n")
 
     if user_choice == 2:
@@ -119,37 +127,45 @@ def process_user_input(user_choice: int, selected_user: str) -> bool:
             print("The following pokemon are in your pokedex: ")
             for index, pokemon in enumerate(pokemon_keys, 1):
                 print(f"{index}: {pokemon}")
-            user_choice = pyip.inputNum(prompt="\nWhich pokemon would you like to delete? , '0' to cancel: ", min=0,
-                                        max=len(pokemon_keys))
-            if user_choice == 0:
+            delete_which = pyip.inputNum(prompt="\nWhich pokemon would you like to delete? , '0' to cancel: ", min=0,
+                                         max=len(pokemon_keys))
+            if delete_which == 0:
                 break
             else:
                 pokemon_deleted = pokemon_keys[user_choice - 1]
                 delete_pokemon(selected_user, pokemon_deleted)
                 print(f"{pokemon_deleted} deleted.")
-                if not pokemon_data.fav_pokemon:
-                    break
-                else:
-                    user_choice = pyip.inputYesNo(prompt="Delete More?(yes/no): ")
-                    if user_choice == "no":
+                if pokemon_data.fav_pokemon[selected_user]:
+                    delete_more = pyip.inputYesNo(prompt="Delete More?(yes/no): ")
+                    if delete_more == 'no':
                         break
+                break
+
+    if user_choice == 5:
+        print(f"{selected_user} successfully logged out.")
+        completed = False
+        return completed
 
     return completed
-def delete_pokemon(selected_user: str, pokemon: str ):
+
+
+def delete_pokemon(selected_user: str, pokemon: str):
     del pokemon_data.fav_pokemon[selected_user][pokemon]
     pokemon_data.save_data()
 
 
 while True:
-    user_input = main_menu()
-    user = get_user_info(user_input)
+    main_selection = main_menu()
+    if main_selection == 4:
+        break
+    user = get_user_info(main_selection)
     if user == '':
         continue
     else:
         while True:
             choice = user_menu()
             processed = process_user_input(choice, user)
+            if not processed:
+                break
             # All selections should take user back to user menu, unless user requests back to main menu.
             # Main menu will represent function returning False. All other values will return True
-
-
